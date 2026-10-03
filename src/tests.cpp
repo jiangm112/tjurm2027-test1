@@ -25,6 +25,18 @@ void my_strcat(char *str_1, char *str_2) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    while(*str_1!='\0'){
+        str_1++;
+    }
+    
+    while(*str_2!='\0'){
+        *str_1=*str_2;
+        str_1++;
+        str_2++;
+    }
+
+    *str_1='\0';
+
 }
 
 
@@ -37,6 +49,23 @@ char* my_strstr(char *s, char *p) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    if (*p=='\0'){
+        return s;
+    }
+    while (*s!='\0'){
+        char *s1=s;
+        char *p1=p;
+
+        while(*s1!='\0'&&*p1!='\0'&&*s1==*p1){
+            s1++;
+            p1++;
+        }
+        
+        if(*p1=='\0'){
+            return s;
+        }
+        s++;
+    }
     return 0;
 }
 
@@ -102,6 +131,20 @@ void rgb2gray(float *in, float *out, int h, int w) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    int total=h*w;
+
+    for(int i=0;i<total;i++){
+        float R=in[3*i];
+        float G=in[3*i+1];
+        float B=in[3*i+2];
+
+        float  V = 0.1140 * B  + 0.5870 * G + 0.2989 * R;
+
+        out[i]=V;
+    }
+
+
+
     // ...
 }
 
@@ -204,6 +247,43 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
 
     int new_h = h * scale, new_w = w * scale;
     // IMPLEMENT YOUR CODE HERE
+    for (int y=0;y<new_h;y++){
+        for(int x=0;x<new_w;x++){
+            float x0=x/scale;
+            float y0=y/scale;
+
+            int x1=static_cast<int>(x0);
+            int y1= static_cast<int>(y0);
+            int x2=x1+1;
+            int y2=y1+1;
+
+            x1=(x1<0)?0:x1;
+            x1=(x1>=w)?w-1:x1;
+            x2=(x2<0)?0:x2;
+            x2=(x2>=w)?w-1:x2;
+            y1=(y1<0)?0:y1;
+            y1=(y1>=h)?h-1:y1;
+            y2=(y2<0)?0:y2;
+            y2=(y2>=h)?h-1:y2;
+
+            float dx = x0 - x1;
+            float dy = y0 - y1;
+
+            for(int k=0;k<c;k++){
+                float p1=in[(y1*w+x1)*c+k];
+                float p2=in[(y1*w+x2)*c+k];
+                float p3=in[(y2*w+x1)*c+k];
+                float p4=in[(y2*w+x2)*c+k];
+
+                float p= p1 * (1 - dx)*(1 - dy) + p2 * dx*(1 - dy)
+                + p3 * (1 - dx)*dy + p4 * dx*dy;
+
+                out[(y*new_w+x)*c+k]=p;
+
+            }
+
+        }
+    }
 
 }
 
@@ -227,4 +307,40 @@ void hist_eq(float *in, int h, int w) {
      */
 
     // IMPLEMENT YOUR CODE HERE
-}
+    int total=h*w;
+
+    int count[256]={0};
+    for(int i=0;i<total;i++){
+        int val=static_cast<int>(in[i] + 0.5f);
+        if(val<0){
+            val=0;
+        }
+        if(val>255){
+            val=255;
+        }
+
+        count[val]++;
+    }
+
+    int sum=0;
+    int map[256];
+    for(int j=0;j<256;j++){
+        sum+=count[j];
+        float val_2=((float)sum / total) * 255.0f;
+        map[j] = static_cast<int>(val_2 + 0.5f);
+    }
+
+    for (int i= 0; i< total; i++) {
+        int old_val = static_cast<int>(in[i] + 0.5f);
+        if (old_val < 0) {
+            old_val = 0;
+        }
+
+        if (old_val > 255) {
+            old_val = 255;
+        }
+        
+        in[i] = static_cast<float>(map[old_val]);  
+        }
+    }
+
